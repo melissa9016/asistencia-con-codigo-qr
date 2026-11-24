@@ -3,51 +3,42 @@
 // Incluye el archivo global.php que contiene las constantes de configuración de la base de datos
 require_once "global.php";
 
-// Establece la conexión con la base de datos utilizando las constantes definidas en global.php
-$conexion = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
+// Si algo falla, que lance excepción (así podemos capturarla)
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-// Establece el conjunto de caracteres para la conexión
-mysqli_query($conexion, "SET NAMES '" . DB_ENCODE . "'");
-
-// Comprueba si hay errores en la conexión
-if (mysqli_connect_errno()) {
-    // Imprime un mensaje de error si la conexión falla y termina el script
-    printf("Ups parece que falló en la conexión con la base de datos: %s\n", mysqli_connect_error());
-    exit();
+try {
+    $conexion = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_NAME);
+    $conexion->set_charset(DB_ENCODE);
+} catch (mysqli_sql_exception $e) {
+    exit("Ups, no se pudo conectar con la base de datos.");
 }
 
-// Verifica si la función ejecutarConsulta no está definida para evitar conflictos de redefinición
-if (!function_exists('ejecutarConsulta')) {
-    // Define la función ejecutarConsulta que ejecuta consultas SQL y devuelve el resultado
-    function ejecutarConsulta($sql) {
-        global $conexion;
-        // Ejecuta la consulta SQL y devuelve el resultado
-        $query = $conexion->query($sql);
-        return $query;
-    }
+date_default_timezone_set(ZONA_HORARIA);
+
+function ejecutarConsulta($sql) {
+    global $conexion;
+    return $conexion->query($sql);
 }
 
-// Define la función ejecutarConsultaSimpleFila que ejecuta consultas SQL y devuelve una fila de resultados
 function ejecutarConsultaSimpleFila($sql) {
     global $conexion;
-    // Ejecuta la consulta SQL y devuelve una fila de resultados
     $query = $conexion->query($sql);
-    $row = $query->fetch_assoc();
-    return $row;
+    return $query->fetch_assoc();
 }
-// Define la función ejecutarConsulta_retornarID que ejecuta consultas SQL y devuelve el ID insertado
-    function ejecutarConsulta_retornarID($sql) {
-        global $conexion;
-        // Ejecuta la consulta SQL y devuelve el ID insertado
-        $query = $conexion->query($sql);
-        return $conexion->insert_id;
-    }
 
-    // Define la función limpiarCadena que limpia una cadena para evitar inyecciones SQL y XSS
-    function limpiarCadena($str) {
-        global $conexion;
-        // Limpia la cadena escapando caracteres especiales y HTML para evitar inyecciones SQL y XSS
-        $str = mysqli_real_escape_string($conexion, trim($str));
-        return htmlspecialchars($str);
-    }
-?>
+function ejecutarConsulta_retornarID($sql) {
+    global $conexion;
+    $conexion->query($sql);
+    return $conexion->insert_id;
+}
+
+// NUEVA: consulta preparada (la forma segura)
+function ejecutarConsultaPreparada($sql, $tipos, $parametros) {
+    global $conexion;
+    $stmt = $conexion->prepare($sql);
+    $stmt->bind_param($tipos, ...$parametros);
+    $stmt->execute();
+    $resultado = $stmt->get_result();   // solo existe en consultas SELECT
+    return $resultado !== false ? $resultado : true;
+}
+
