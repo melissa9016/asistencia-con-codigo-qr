@@ -1,4 +1,3 @@
-```php
 <?php
 // Incluye el archivo global.php que contiene las constantes de configuración de la base de datos
 require_once "global.php";
