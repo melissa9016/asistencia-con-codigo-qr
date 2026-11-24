@@ -12,10 +12,10 @@ define("DB_USERNAME", "root");
 define("DB_PASSWORD", "");
 
 // Codificación de caracteres
-define("DB_ENCODE", "utf8");
+define("DB_ENCODE", "utf8mb4");
 
 // Nombre del proyecto
-define("PRO_NOMBRE", "CompartiendoCodigos");
+define("PRO_NOMBRE", "LIER ASISTENCIA QR");
 
 // Zona horaria
-define("ZONA_HORARIA", "America/Lima");
+define("ZONA_HORARIA", "America/Guayaquil");
