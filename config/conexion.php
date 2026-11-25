@@ -40,4 +40,9 @@ function ejecutarConsultaPreparada($sql, $tipos, $parametros) {
     $resultado = $stmt->get_result();   // solo existe en consultas SELECT
     return $resultado !== false ? $resultado : true;
 }
-
+// Limpia texto antes de usarlo en una consulta armada con concatenación.
+// (Si usas ejecutarConsultaPreparada, no necesitas esta función.)
+function limpiarCadena($str) {
+    global $conexion;
+    return $conexion->real_escape_string(trim($str));
+}
